@@ -202,23 +202,157 @@ I haven't run that, since you didn't ask me to undo anything. I'd recommend reve
 
 ## Milestone 3: The run
 
-Run exactly ONE task from your plan with the agent, under the guardrail, through its gate. Any task
-whose dependencies are done qualifies, including the smallest one.
+**The takeover point.** The agent tries to change anything outside `core-domain` to get the task
+green, like adding a new conflict checker.
 
-**The takeover point.** Write this before you start the run. A concrete, conditional statement of
-when you would stop the agent and write the code yourself. "If something looks wrong" does not
-count. Name the trigger and name what you would do.
+**The evidence.** Running Task 1 from Milestone 1.
 
-**The evidence.** Name the task from Milestone 1. Paste the result line of its gate command (run it
-without `-q` so the line is in the output) and the result line of one `mvn -B clean test` run after
-the task was finished. The module gate cannot see a cross-module compile break on a warm tree. A
-cold build can, and so can CI.
+```
+$ mvn -pl core-domain -am test
 
-**The diff.** The files the agent changed, and how each one maps to that task's declared scope
-(plain `git diff` leaves out new files, but `git add -N . && git diff --stat` includes them). Note
-anything it touched that you did not expect, including any shipped test. Then quote the one line you
-read hardest and say what you were checking for.
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO]
+[INFO] CampusReserve                                                      [pom]
+[INFO] CampusReserve core domain                                          [jar]
+[INFO]
+[INFO] ----------< edu.cmu.cs214.campusreserve:campusreserve-parent >----------
+[INFO] Building CampusReserve 1.0.0                                       [1/2]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO]
+[INFO] --------------< edu.cmu.cs214.campusreserve:core-domain >---------------
+[INFO] Building CampusReserve core domain 1.0.0                           [2/2]
+[INFO]   from core-domain/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- resources:3.4.0:resources (default-resources) @ core-domain ---
+[INFO] skip non existing resourceDirectory /Users/Sanjana/repos/cmu-agentic-software/17514-f26-lab08/core-domain/src/main/resources
+[INFO]
+[INFO] --- compiler:3.13.0:compile (default-compile) @ core-domain ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO]
+[INFO] --- resources:3.4.0:testResources (default-testResources) @ core-domain ---
+[INFO] skip non existing resourceDirectory /Users/Sanjana/repos/cmu-agentic-software/17514-f26-lab08/core-domain/src/test/resources
+[INFO]
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ core-domain ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 16 source files with javac [debug release 21] to target/test-classes
+[INFO]
+[INFO] --- surefire:3.5.6:test (default-test) @ core-domain ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO]
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running edu.cmu.cs214.campusreserve.core.service.BookingServiceWaitlistTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.239 s -- in edu.cmu.cs214.campusreserve.core.service.BookingServiceWaitlistTest
+[INFO] Running edu.cmu.cs214.campusreserve.core.service.BookingServiceCancelTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.048 s -- in edu.cmu.cs214.campusreserve.core.service.BookingServiceCancelTest
+[INFO] Running edu.cmu.cs214.campusreserve.core.service.AvailabilityServiceTest
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.082 s -- in edu.cmu.cs214.campusreserve.core.service.AvailabilityServiceTest
+[INFO] Running edu.cmu.cs214.campusreserve.core.service.CatalogAndRegistryTest
+[INFO] Running user registry
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in user registry
+[INFO] Running room catalog
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.048 s -- in room catalog
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.064 s -- in edu.cmu.cs214.campusreserve.core.service.CatalogAndRegistryTest
+[INFO] Running edu.cmu.cs214.campusreserve.core.service.BookingServiceCreateTest
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.054 s -- in edu.cmu.cs214.campusreserve.core.service.BookingServiceCreateTest
+[INFO] Running edu.cmu.cs214.campusreserve.core.service.BookingServiceModifyTest
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.047 s -- in edu.cmu.cs214.campusreserve.core.service.BookingServiceModifyTest
+[INFO] Running edu.cmu.cs214.campusreserve.core.domain.EntityTest
+[INFO] Running outcomes
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in outcomes
+[INFO] Running waitlist entry
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in waitlist entry
+[INFO] Running booking
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in booking
+[INFO] Running user
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in user
+[INFO] Running room kind
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in room kind
+[INFO] Running room
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in room
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.050 s -- in edu.cmu.cs214.campusreserve.core.domain.EntityTest
+[INFO] Running edu.cmu.cs214.campusreserve.core.domain.TimeIntervalTest
+[INFO] Running ordering
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in ordering
+[INFO] Running calendar arithmetic
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in calendar arithmetic
+[INFO] Running membership
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in membership
+[INFO] Running overlaps
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in overlaps
+[INFO] Running construction
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in construction
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.046 s -- in edu.cmu.cs214.campusreserve.core.domain.TimeIntervalTest
+[INFO] Running edu.cmu.cs214.campusreserve.core.policy.BookingRulesTest
+[INFO] Running promotability
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in promotability
+[INFO] Running cancellation
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in cancellation
+[INFO] Running room state and party size
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in room state and party size
+[INFO] Running calendar window
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.044 s -- in calendar window
+[INFO] Running interval shape
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 s -- in interval shape
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.082 s -- in edu.cmu.cs214.campusreserve.core.policy.BookingRulesTest
+[INFO] Running edu.cmu.cs214.campusreserve.core.policy.BookingPolicyTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.021 s -- in edu.cmu.cs214.campusreserve.core.policy.BookingPolicyTest
+[INFO] Running edu.cmu.cs214.campusreserve.core.policy.ConflictCheckerTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.024 s -- in edu.cmu.cs214.campusreserve.core.policy.ConflictCheckerTest
+[INFO]
+[INFO] Results:
+[INFO]
+[INFO] Tests run: 184, Failures: 0, Errors: 0, Skipped: 0
+[INFO]
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for CampusReserve 1.0.0:
+[INFO]
+[INFO] CampusReserve ...................................... SUCCESS [  0.002 s]
+[INFO] CampusReserve core domain .......................... SUCCESS [  4.015 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  4.099 s
+[INFO] Finished at: 2026-10-23T13:13:11-04:00
+[INFO] ------------------------------------------------------------------------
+```
 
-**The refuter.** What you gave it and what you asked it to do (paste the brief). Then the one
-finding you settled, and how (the new failing test with its red run, or the evidence that dismissed
-it). If nothing it reported held up, say how you checked its strongest claim.
+```
+$ mvn -B clean test
+...
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.13.0:compile (default-compile) on project notifications: Compilation failure
+[ERROR] /Users/Sanjana/repos/cmu-agentic-software/17514-f26-lab08/notifications/src/main/java/edu/cmu/cs214/campusreserve/notifications/NotificationKind.java:[55,16] the switch expression does not cover all possible input values
+```
+
+**The diff.**
+
+```
+ PLAN.md                                                                           | 133 ++++++++++++++++++--
+ core-domain/src/main/java/edu/cmu/cs214/campusreserve/core/domain/Booking.java    |  20 ++-
+ .../src/main/java/edu/cmu/cs214/campusreserve/core/domain/BookingChange.java      |  24 ++++
+ .../src/main/java/edu/cmu/cs214/campusreserve/core/domain/ModificationResult.java |  54 ++++++++
+ .../main/java/edu/cmu/cs214/campusreserve/core/events/BookingModifiedEvent.java   |  53 ++++++++
+ .../src/main/java/edu/cmu/cs214/campusreserve/core/events/DomainEvent.java        |   2 +-
+ .../src/main/java/edu/cmu/cs214/campusreserve/core/policy/BookingRules.java       |   8 ++
+ .../src/main/java/edu/cmu/cs214/campusreserve/core/service/BookingService.java    |  70 ++++++++++-
+ .../java/edu/cmu/cs214/campusreserve/core/service/BookingServiceModifyTest.java   | 257 +++++++++++++++++++++++++++++++++++++++
+ 9 files changed, 606 insertions(+), 15 deletions(-)
+```
+
+I would look at `BookingChange.java` and `ModificationResult.java` the closest, right before looking
+at `BookingServiceModifyTest.java`.
+
+**The refuter.**
+
+> look at the git diff here: <insert git diff stats from above>. The task's scope was to introduce
+> modifications to the bookings infrastructure. Find inputs or call sequences where the task does
+> the wrong thing.
+
+A modify makes the analytics reader reject the whole event log because it is not added to
+`KNOWN_EVENT_TYPES` yet. The multi-module build is red already because `notifications` does not
+compile.
