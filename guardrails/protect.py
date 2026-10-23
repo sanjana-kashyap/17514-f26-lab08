@@ -51,9 +51,11 @@ import sys
 # The token this file ships with, so an unedited list is obvious.
 PLACEHOLDER = "MODULE-YOU-ARE-NOT-TOUCHING/"
 
-# EDIT THIS LIST. One repository-relative directory per entry, trailing slash.
+# One repository-relative directory per entry, trailing slash.
 PROTECTED_PATHS = [
-    PLACEHOLDER,
+    "billing/",
+    "cli/",
+    "accounts/",
 ]
 
 # Files that must not change whatever the plan says. These are the conventions
@@ -62,6 +64,10 @@ PROTECTED_FILES = [
     "AGENTS.md",
     "CLAUDE.md",
     "CHANGE-REQUEST.md",
+    "analytics/revenue.py",
+    "pom.xml",
+    "storage/src/main/java/edu/cmu/cs214/campusreserve/storage/StoreRegistry.java",
+    "storage/src/main/java/edu/cmu/cs214/campusreserve/storage/InMemoryWaitlistStore.java",
 ]
 
 # Tools that touch no file, so this hook has nothing to check and lets them by.
@@ -70,8 +76,16 @@ PROTECTED_FILES = [
 # slipping past. Bash is here, but the hook never sees it anyway (see
 # guardrails/README.md).
 NON_FILE_TOOLS = (
-    "Bash", "BashOutput", "KillShell", "Read", "Grep", "Glob",
-    "WebFetch", "WebSearch", "Task", "TodoWrite",
+    "Bash",
+    "BashOutput",
+    "KillShell",
+    "Read",
+    "Grep",
+    "Glob",
+    "WebFetch",
+    "WebSearch",
+    "Task",
+    "TodoWrite",
 )
 
 ALLOW = 0
@@ -148,12 +162,14 @@ def decide(payload: dict, root: str, paths, files) -> int:
             f"protect.py blocked {tool}: this guardrail is not configured. Edit"
             " PROTECTED_PATHS at the top of guardrails/protect.py, replacing"
             f" {PLACEHOLDER!r} with the modules your plan puts out of scope. Every"
-            " file-editing call is blocked until you do.")
+            " file-editing call is blocked until you do."
+        )
 
     if not path:
         return refuse(
             f"protect.py blocked {tool}: it can write files but this call carries no"
-            " file path, so there is no way to tell whether it is in bounds.")
+            " file path, so there is no way to tell whether it is in bounds."
+        )
 
     hit = violation(path, root, paths, files)
     if hit is None:
@@ -162,7 +178,8 @@ def decide(payload: dict, root: str, paths, files) -> int:
     relation = "is under" if hit.endswith("/") else "matches"
     return refuse(
         f"protect.py blocked {tool}: {path} {relation} {hit}, which this plan puts"
-        " out of scope. Ask the user before changing the scope.")
+        " out of scope. Ask the user before changing the scope."
+    )
 
 
 def report_placeholder() -> None:
@@ -176,7 +193,8 @@ def report_placeholder() -> None:
         print(
             f"\nNOT CONFIGURED: PROTECTED_PATHS still holds {PLACEHOLDER!r}. Every"
             " file-editing call is blocked until you replace it with the modules"
-            " your plan puts out of scope.")
+            " your plan puts out of scope."
+        )
         sys.stdout.flush()
 
 
@@ -187,29 +205,53 @@ def self_test() -> int:
     after you edit that list. It tells you the matching works. It does not tell
     you your list is right.
     """
-    root = os.path.realpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+    root = os.path.realpath(
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+    )
     paths = ["out-of-scope-module/"]
     files = ["AGENTS.md"]
 
     cases = [
-        ("blocked", {"tool_name": "Edit",
-                     "tool_input": {"file_path": "out-of-scope-module/Money.java"}}),
+        (
+            "blocked",
+            {
+                "tool_name": "Edit",
+                "tool_input": {"file_path": "out-of-scope-module/Money.java"},
+            },
+        ),
         ("blocked", {"tool_name": "Write", "tool_input": {"file_path": "AGENTS.md"}}),
-        ("blocked", {"tool_name": "NotebookEdit",
-                     "tool_input": {"notebook_path": "out-of-scope-module/notes.ipynb"}}),
+        (
+            "blocked",
+            {
+                "tool_name": "NotebookEdit",
+                "tool_input": {"notebook_path": "out-of-scope-module/notes.ipynb"},
+            },
+        ),
         ("blocked", {"tool_name": "Edit", "tool_input": {}}),
         ("blocked", {"tool_name": "SomeFutureEditingTool", "tool_input": {}}),
-        ("allowed", {"tool_name": "Edit", "tool_input": {"file_path": "core-domain/X.java"}}),
+        (
+            "allowed",
+            {"tool_name": "Edit", "tool_input": {"file_path": "core-domain/X.java"}},
+        ),
         ("allowed", {"tool_name": "Bash", "tool_input": {"command": "mvn -q test"}}),
-        ("allowed", {"tool_name": "Edit",
-                     "tool_input": {"file_path": "../out-of-scope-module/Money.java"}}),
+        (
+            "allowed",
+            {
+                "tool_name": "Edit",
+                "tool_input": {"file_path": "../out-of-scope-module/Money.java"},
+            },
+        ),
     ]
 
     failures = 0
     for expected, payload in cases:
-        actual = "blocked" if decide(payload, root, paths, files) == BLOCK else "allowed"
+        actual = (
+            "blocked" if decide(payload, root, paths, files) == BLOCK else "allowed"
+        )
         mark = "ok " if actual == expected else "BAD"
-        print(f"{mark} expected {expected}, got {actual}: {target_path(payload) or payload}")
+        print(
+            f"{mark} expected {expected}, got {actual}: {target_path(payload) or payload}"
+        )
         sys.stdout.flush()
         failures += actual != expected
 
@@ -229,10 +271,14 @@ def main() -> int:
     try:
         payload = json.loads(raw)
     except json.JSONDecodeError as failure:
-        return refuse(f"protect.py: could not read the hook payload ({failure}),"
-                      " refusing the call.")
+        return refuse(
+            f"protect.py: could not read the hook payload ({failure}),"
+            " refusing the call."
+        )
     if not isinstance(payload, dict):
-        return refuse("protect.py: the hook payload was not an object, refusing the call.")
+        return refuse(
+            "protect.py: the hook payload was not an object, refusing the call."
+        )
 
     return decide(payload, project_root(), PROTECTED_PATHS, PROTECTED_FILES)
 
@@ -244,6 +290,8 @@ if __name__ == "__main__":
         raise
     except BaseException as failure:  # noqa: BLE001
         # Fail closed.
-        print(f"protect.py: the hook itself failed ({failure!r}), refusing the call.",
-              file=sys.stderr)
+        print(
+            f"protect.py: the hook itself failed ({failure!r}), refusing the call.",
+            file=sys.stderr,
+        )
         sys.exit(BLOCK)
